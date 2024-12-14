@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Chat</title>
+    <link rel="stylesheet" href="student.css" />
+  </head>
+  <body>
+    <h1>Student Chat</h1>
+    <div id="studentIdDisplay"></div>
+    <div id="chatWindow"></div>
+    <input type="text" id="messageInput" placeholder="Type your message" />
+    <button id="sendMessage">Send</button>
+
+    <script>
+      // Create a WebSocket connection
+      const socket = new WebSocket(`ws://${window.location.host}`);
+
+      let studentId = ""; // Placeholder for studentId
+
+      const chatWindow = document.getElementById("chatWindow");
+      const messageInput = document.getElementById("messageInput");
+      const sendMessageButton = document.getElementById("sendMessage");
+
+      // Handle incoming messages from the server
+      socket.addEventListener("message", (event) => {
+        const message = JSON.parse(event.data);
+
+        switch (message.type) {
+          case "assignId":
+            studentId = message.data.studentId;
+            document.getElementById(
+              "studentIdDisplay"
+            ).innerText = `You are: ${studentId}`;
+            break;
+          case "messageFromAdmin":
+            chatWindow.innerHTML += `<p>Admin: ${message.data.message}</p>`;
+            break;
+          default:
+            console.log("Unknown message type:", message.type);
+        }
+      });
+
+      // Send a message to the admin
+      sendMessageButton.addEventListener("click", () => {
+        const message = messageInput.value;
+        socket.send(
+          JSON.stringify({
+            type: "studentMessage",
+            data: { studentId, message },
+          })
+        );
+        chatWindow.innerHTML += `<p>You: ${message}</p>`;
+        messageInput.value = "";
+      });
+    </script>
+  </body>
+</html>

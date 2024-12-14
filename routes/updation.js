@@ -2,13 +2,14 @@
 
 const express = require("express");
 const router = express.Router();
+const model = require("../models/user_model");
 
-router.put("/update", async (req, res) => {
+router.put("/", async (req, res) => {
   const { useremail, newUseremail, newPassword } = req.body;
-
+  console.log(useremail, newUseremail, newPassword);
   try {
     // Find the user by email and update fields
-    const updatedUser = await User.findOneAndUpdate(
+    const updatedUser = await model.findOneAndUpdate(
       { useremail: useremail }, // Find user by original email
       {
         $set: {
@@ -27,7 +28,7 @@ router.put("/update", async (req, res) => {
       res.status(404).json({ msg: "No user found with the provided email" });
     }
   } catch (error) {
-    console.error("Error while updating user:", error.message);
+    console.error("Error while updating user:", error);
     res.status(500).json({ msg: "Internal server error" });
   }
 });

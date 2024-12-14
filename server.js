@@ -11,6 +11,7 @@ const mongodb = require("mongoose");
 const login = require("./routes/login");
 const signup = require("./routes/SignUp");
 const deletion = require("./routes/delete");
+const updation = require("./routes/updation");
 
 app.use(express.json());
 
@@ -22,6 +23,7 @@ connectDB(mongodb);
 app.use("/login", login);
 app.use("/signup", signup);
 app.use("/delete", deletion);
+app.use("/update", updation);
 
 const port = process.env.PORT || 5000;
 app.listen(port, () => {

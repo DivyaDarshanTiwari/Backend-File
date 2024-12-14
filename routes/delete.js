@@ -2,12 +2,13 @@
 
 const express = require("express");
 const router = express.Router();
+const model = require("../models/user_model");
 
 router.delete("/", async (req, res) => {
   const { useremail } = req.body;
 
   try {
-    const result = await User.findOneAndDelete({ useremail: useremail });
+    const result = await model.findOneAndDelete({ useremail: useremail });
 
     if (result) {
       res.status(200).json({ msg: "User deleted successfully", user: result });

@@ -1,3 +1,5 @@
+"use strict";
+
 const express = require("express");
 const mongoose = require("mongoose");
 const multer = require("multer");
@@ -30,7 +32,7 @@ const testSchema = new Schema({
   location: String,
   subject: String,
   address: String, // Added address field
-  photo: { data: Buffer, contentType: String },
+  photo: String, // Store the file path in the database
 });
 
 const TestModel = mongoose.model("TestModel", testSchema);
@@ -44,7 +46,23 @@ const userSchema = Joi.object({
   subject: Joi.string().valid("backend", "dcn", "ai", "ml").required(),
 });
 
-const storage = multer.memoryStorage();
+// Multer setup for disk storage
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadPath = path.join(__dirname, "/uploads");
+    // Ensure the upload directory exists
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath);
+    }
+    cb(null, uploadPath); // Save file in the "uploads" directory
+  },
+  filename: (req, file, cb) => {
+    const fileExtension = path.extname(file.originalname);
+    const fileName = Date.now() + fileExtension; // Use current timestamp for unique file names
+    cb(null, fileName); // Assign the unique filename
+  },
+});
+
 // Multer setup
 const upload = multer({
   storage: storage,
@@ -79,7 +97,7 @@ class AppError extends Error {
 
 // Serve the HTML form
 app.get("/", (req, res) => {
-  const filePath = path.join(__dirname, "../index.html");
+  const filePath = path.join(__dirname, "/index.html");
   res.sendFile(filePath);
 });
 
@@ -106,11 +124,7 @@ app.post("/registration", upload.single("file"), (req, res, next) => {
   }
 
   const file = req.file;
-  let filePath = "";
-  if (file) {
-    filePath = file.path; // Save the file path in the database
-  }
-  if (!req.file) {
+  if (!file) {
     return res.status(400).send("Image file is required.");
   }
 
@@ -120,16 +134,16 @@ app.post("/registration", upload.single("file"), (req, res, next) => {
     return res.status(400).send("File size must be between 5KB and 500KB.");
   }
 
+  // Store the file path in the database
+  const filePath = `/uploads/${req.file.filename}`; // The relative path to the file
+
   const newEntry = new TestModel({
     name,
     age: calculatedAge, // Store the calculated age
     location,
     address,
     subject,
-    photo: {
-      data: req.file.buffer,
-      contentType: req.file.mimetype,
-    },
+    photo: filePath, // Save file path in the database
   });
 
   newEntry

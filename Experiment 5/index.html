@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>HTML + CSS</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      /* General styles */
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f9;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+
+      form {
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        width: 400px;
+      }
+
+      /* Form elements */
+      form div {
+        margin-bottom: 15px;
+      }
+
+      label {
+        font-weight: bold;
+        margin-bottom: 5px;
+        display: inline-block;
+      }
+
+      input[type="text"],
+      input[type="date"],
+      input[type="file"],
+      textarea,
+      select {
+        width: 100%;
+        padding: 8px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        margin-top: 5px;
+        font-size: 16px;
+      }
+
+      textarea {
+        resize: none;
+      }
+
+      input[type="submit"] {
+        background-color: #195b96;
+        color: white;
+        font-size: 16px;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      input[type="submit"]:hover {
+        background-color: #10497a;
+      }
+
+      /* Error message styles */
+      #error_name,
+      #error_age {
+        font-size: 12px;
+        color: red;
+        margin-top: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <form
+      id="myForm"
+      action="/registration"
+      method="post"
+      enctype="multipart/form-data"
+    >
+      <div>
+        <label for="name">Name</label>
+        <input type="text" name="name" id="name" placeholder="name" />
+        <div id="error_name" style="color: red"></div>
+      </div>
+      <div>
+        <label for="age">Age</label>
+        <input type="date" name="age" id="age" placeholder="DOB" />
+        <div id="error_age" style="color: red"></div>
+      </div>
+      <div>
+        <label for="location">Location</label>
+        <input
+          type="text"
+          name="location"
+          id="location"
+          placeholder="location"
+        />
+      </div>
+      <div>
+        <label for="address">Address</label>
+        <textarea name="address" id="address" placeholder="Address"></textarea>
+      </div>
+      <div>
+        <label for="file">File</label>
+        <input type="file" name="file" id="file" />
+      </div>
+      <label for="subject">Subjects:</label>
+      <select name="subject" id="subject">
+        <option value="backend">Backend</option>
+        <option value="dcn">DNC</option>
+        <option value="ai">AI</option>
+        <option value="ml">ML</option>
+      </select>
+      <input
+        type="submit"
+        value="Submit"
+        style="background-color: rgba(25, 91, 150, 0.745); border: 0"
+      />
+    </form>
+
+    <script>
+      document
+        .getElementById("myForm")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+          submitted();
+        });
+
+      function submitted() {
+        let userName = document.getElementById("name").value;
+        let error = false;
+        const regex = /[^a-zA-Z0-9 ]/;
+
+        if (regex.test(userName)) {
+          document.getElementById("error_name").innerHTML =
+            "Do not enter special characters";
+          error = true;
+        } else {
+          document.getElementById("error_name").innerHTML = "";
+        }
+
+        let age = document.getElementById("age").value;
+        if (age) {
+          let dob = new Date(age);
+          let birthYear = dob.getFullYear();
+
+          if (birthYear > 2010) {
+            document.getElementById("error_age").innerHTML = "Invalid age";
+            error = true;
+          } else {
+            document.getElementById("error_age").innerHTML = "";
+          }
+
+          if (error) {
+            return;
+          }
+        } else {
+          document.getElementById("error_age").innerHTML =
+            "Please enter your date of birth.";
+          error = true;
+        }
+
+        let userLocation = document.getElementById("location").value;
+        let userAddress = document.getElementById("address").value;
+        let subject = document.getElementById("subject").value;
+        let fileInput = document.getElementById("file");
+        let file = fileInput.files[0];
+
+        if (userName && age && userLocation && userAddress && subject && file) {
+          let fileSizeInMB = (file.size / (1024 * 1024)).toFixed(2);
+          alert(`File size: ${fileSizeInMB} MB`);
+
+          const formData = new FormData();
+          formData.append("name", userName);
+          formData.append("age", age);
+          formData.append("location", userLocation);
+          formData.append("address", userAddress);
+          formData.append("subject", subject);
+          formData.append("file", file);
+
+          fetch("/registration", {
+            method: "POST",
+            body: formData,
+          })
+            .then((response) => response.json())
+            .then((result) => {
+              alert("Form submitted successfully! " + JSON.stringify(result));
+            })
+            .catch((error) => {
+              alert("Error submitting form: " + error);
+            });
+        } else {
+          alert("Please enter all the parameters.");
+        }
+      }
+    </script>
+  </body>
+</html>
